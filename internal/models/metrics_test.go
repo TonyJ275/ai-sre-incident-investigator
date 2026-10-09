@@ -39,3 +39,32 @@ func TestMetricSampleParsesJSONLine(t *testing.T) {
 		t.Errorf("time = %v, want %v", m.Time, want)
 	}
 }
+func TestIsServerError(t *testing.T) {
+	tests := []struct {
+		name   string
+		status int
+		want   bool
+	}{
+		{"OK", 200, false},
+		{"Not Found", 404, false},
+		{"just below server error", 499, false},
+		{"Internal Server Error", 500, true},
+		{"Bad Gateway", 502, true},
+		{"Service Unavailable", 503, true},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			got := IsServerError(tt.status)
+
+			if got != tt.want {
+				t.Errorf(
+					"IsServerError(%d) = %v, want %v",
+					tt.status,
+					got,
+					tt.want,
+				)
+			}
+		})
+	}
+}
